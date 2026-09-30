@@ -7,12 +7,14 @@ on:
       - 'android/**'
       - 'src/**'
       - 'package.json'
+      - 'example/**'
       - '.github/workflows/android-ci.yml'
   pull_request:
     paths:
       - 'android/**'
       - 'src/**'
       - 'package.json'
+      - 'example/**'
       - '.github/workflows/android-ci.yml'
   workflow_dispatch:
 
@@ -33,6 +35,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
+
+      - name: Install JavaScript dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
 
       - uses: actions/setup-java@v4
         with:
@@ -60,3 +65,6 @@ jobs:
 
       - name: Compile, lint and test Android library
         run: npm run ci:android
+
+      - name: Compile and lint example Android app
+        run: npm run ci:example:android
