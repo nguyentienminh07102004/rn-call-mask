@@ -1,6 +1,6 @@
 {
   "name": "rn-call-mask",
-  "version": "0.0.1",
+  "version": "0.1.0-beta.1",
   "description": "Native-first incoming call presentation and lifecycle bridge for React Native VoIP apps.",
   "license": "MIT",
   "main": "lib/index.js",
@@ -10,10 +10,11 @@
     "src",
     "lib",
     "android",
-    "react-native.config.js",
-    "README.md",
     "ios",
-    "rn-call-mask.podspec"
+    "react-native.config.js",
+    "rn-call-mask.podspec",
+    "README.md",
+    "docs/HOST_INTEGRATION.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -23,9 +24,12 @@
     "validate": "npm run lint && npm run typecheck && npm run typecheck:example && npm run test && npm run build",
     "ci:android": "gradle -p android clean assembleDebug lintDebug testDebugUnitTest",
     "example:android": "gradle -p example/android assembleDebug",
-    "ci:example:android": "gradle -p example/android clean assembleDebug lintDebug",
+    "ci:example:android": "bash scripts/ci-example-android.sh",
     "typecheck:example": "tsc -p example/tsconfig.json --noEmit",
-    "ci:ios": "bash scripts/ci-ios.sh"
+    "ci:ios": "bash scripts/ci-ios.sh",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run ci:pack",
+    "ci:pack": "bash scripts/validate-package.sh"
   },
   "peerDependencies": {
     "react-native": ">=0.86.0 <0.89.0"
@@ -53,6 +57,24 @@
     "node": ">=22"
   },
   "publishConfig": {
-    "access": "public"
-  }
+    "access": "public",
+    "tag": "beta"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nguyentienminh07102004/rn-call-mask.git"
+  },
+  "homepage": "https://github.com/nguyentienminh07102004/rn-call-mask#readme",
+  "bugs": {
+    "url": "https://github.com/nguyentienminh07102004/rn-call-mask/issues"
+  },
+  "keywords": [
+    "react-native",
+    "voip",
+    "callkit",
+    "pushkit",
+    "android",
+    "core-telecom",
+    "incoming-call"
+  ]
 }
