@@ -29,6 +29,7 @@ object CallMaskNative {
         if (existing != null) {
             if (existing.state == CallState.RINGING || existing.state == CallState.INCOMING) {
                 CallNotificationManager(context).showIncoming(existing)
+                CoreTelecomCoordinator.addIncoming(context, existing)
             }
             return existing
         }
@@ -47,6 +48,7 @@ object CallMaskNative {
             ),
         )
         CallNotificationManager(context).showIncoming(session)
+        CoreTelecomCoordinator.addIncoming(context, session)
         CallEventBus.dispatch(
             context,
             NativeCallEvent(callId = callId, type = "incoming", state = session.state.wireValue),
@@ -65,6 +67,7 @@ object CallMaskNative {
         }
         val ended = registry.transition(callId, CallState.ENDED, reason) ?: return null
         CallNotificationManager(context).cancel(callId)
+        CoreTelecomCoordinator.syncEnd(context, callId)
         CallEventBus.dispatch(
             context,
             NativeCallEvent(
