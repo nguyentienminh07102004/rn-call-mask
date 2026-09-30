@@ -11,13 +11,12 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
 
     public init(
         registry: CallMaskIOSRegistry = .shared,
-        events: CallMaskIOSEventStore = .shared,
-        localizedName: String = "Call"
+        events: CallMaskIOSEventStore = .shared
     ) {
         self.registry = registry
         self.events = events
 
-        let configuration = CXProviderConfiguration(localizedName: localizedName)
+        let configuration = CXProviderConfiguration()
         configuration.supportsVideo = true
         configuration.maximumCallGroups = 2
         configuration.maximumCallsPerCallGroup = 1
