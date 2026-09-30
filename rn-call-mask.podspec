@@ -14,4 +14,5 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{swift,h,m,mm}"
   s.swift_version = "5.9"
   s.frameworks = "CallKit", "PushKit", "AVFAudio"
+  s.dependency "React-Core"
 end

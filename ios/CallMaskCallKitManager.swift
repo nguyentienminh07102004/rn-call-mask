@@ -6,15 +6,17 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
     public static let shared = CallMaskCallKitManager()
 
     private let registry: CallMaskIOSRegistry
-    private let events: CallMaskIOSEventStore
+    private let events: CallMaskIOSEventBus
     private let provider: CXProvider
+    private let controller: CXCallController
 
     public init(
         registry: CallMaskIOSRegistry = .shared,
-        events: CallMaskIOSEventStore = .shared
+        events: CallMaskIOSEventBus = .shared
     ) {
         self.registry = registry
         self.events = events
+        self.controller = CXCallController()
 
         let configuration = CXProviderConfiguration()
         configuration.supportsVideo = true
@@ -64,7 +66,7 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
                         to: .ended,
                         endReason: "failed"
                     ) {
-                        self?.events.append(
+                        self?.events.dispatch(
                             CallMaskIOSEvent(
                                 callId: failed.callId,
                                 type: "end",
@@ -77,7 +79,7 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
                     return
                 }
 
-                self?.events.append(
+                self?.events.dispatch(
                     CallMaskIOSEvent(
                         callId: session.callId,
                         type: "incoming",
@@ -98,6 +100,64 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
         _ = try registry.transition(callId: callId, to: .active)
     }
 
+
+    public func requestAnswer(
+        callId: String,
+        completion: @escaping (Error?) -> Void
+    ) {
+        guard let session = registry.session(callId: callId) else {
+            completion(CallMaskIOSError.unknownCall(callId))
+            return
+        }
+        guard session.state == .ringing || session.state == .incoming else {
+            completion(CallMaskIOSError.invalidState(session.state.rawValue + " -> connecting"))
+            return
+        }
+
+        let transaction = CXTransaction(
+            action: CXAnswerCallAction(call: session.uuid)
+        )
+        controller.request(transaction, completion: completion)
+    }
+
+    public func requestDecline(
+        callId: String,
+        completion: @escaping (Error?) -> Void
+    ) {
+        guard let session = registry.session(callId: callId) else {
+            completion(CallMaskIOSError.unknownCall(callId))
+            return
+        }
+        guard session.state == .ringing || session.state == .incoming else {
+            completion(CallMaskIOSError.invalidState(session.state.rawValue + " -> ended"))
+            return
+        }
+
+        let transaction = CXTransaction(
+            action: CXEndCallAction(call: session.uuid)
+        )
+        controller.request(transaction, completion: completion)
+    }
+
+    public func requestLocalEnd(
+        callId: String,
+        completion: @escaping (Error?) -> Void
+    ) {
+        guard let session = registry.session(callId: callId) else {
+            completion(CallMaskIOSError.unknownCall(callId))
+            return
+        }
+        if session.state == .ended {
+            completion(nil)
+            return
+        }
+
+        let transaction = CXTransaction(
+            action: CXEndCallAction(call: session.uuid)
+        )
+        controller.request(transaction, completion: completion)
+    }
+
     public func end(callId: String, reason: String = "remote") throws {
         guard let current = registry.session(callId: callId) else {
             throw CallMaskIOSError.unknownCall(callId)
@@ -113,7 +173,7 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
             endedAt: ended.endedAt,
             reason: callKitEndReason(reason)
         )
-        events.append(
+        events.dispatch(
             CallMaskIOSEvent(
                 callId: ended.callId,
                 type: "end",
@@ -135,7 +195,7 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
             ) else {
                 continue
             }
-            events.append(
+            events.dispatch(
                 CallMaskIOSEvent(
                     callId: ended.callId,
                     type: "end",
@@ -154,7 +214,7 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
 
         do {
             let connecting = try registry.transition(callId: session.callId, to: .connecting)
-            events.append(
+            events.dispatch(
                 CallMaskIOSEvent(
                     callId: connecting.callId,
                     type: "answer",
@@ -191,7 +251,7 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
                 to: .ended,
                 endReason: reason
             )
-            events.append(
+            events.dispatch(
                 CallMaskIOSEvent(
                     callId: ended.callId,
                     type: eventType,

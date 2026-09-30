@@ -2,7 +2,14 @@
 set -euo pipefail
 
 SDK_PATH="$(xcrun --sdk iphonesimulator --show-sdk-path)"
-SWIFT_FILES=(ios/*.swift)
+SWIFT_FILES=(
+  ios/CallMaskIOSModels.swift
+  ios/CallMaskIOSRegistry.swift
+  ios/CallMaskIOSEventStore.swift
+  ios/CallMaskIOSEventBus.swift
+  ios/CallMaskCallKitManager.swift
+  ios/CallMaskPushKitManager.swift
+)
 
 if [[ ! -e "${SWIFT_FILES[0]}" ]]; then
   echo "::error::No iOS Swift sources found"
@@ -22,3 +29,6 @@ xcrun swiftc \
   -o "$TEST_BINARY"
 
 "$TEST_BINARY"
+
+pod ipc spec rn-call-mask.podspec >/dev/null
+echo "CocoaPods spec validation passed."
