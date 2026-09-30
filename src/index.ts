@@ -2,7 +2,9 @@ export { CallMask } from './CallMask';
 export { CallMaskError, type CallMaskErrorCode } from './errors';
 export {
   CallLifecycleCoordinator,
+  createCallLifecycleCoordinator,
   type CallActionContext,
+  type CallControl,
   type CallEndContext,
   type CallIntegrationError,
   type CallIntegrationStage,
