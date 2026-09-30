@@ -38,32 +38,22 @@ class CallMaskModule(
             val callId = call.requiredString("callId")
             val caller = call.getMap("caller") ?: throw IllegalArgumentException("caller is required")
             val callerName = caller.requiredString("name")
-            val callerId = caller.optionalString("id") ?: callId
-            val media = call.optionalString("media") ?: "audio"
-            require(media == "audio" || media == "video") { "media must be audio or video" }
             val createdAt = if (call.hasKey("createdAt") && !call.isNull("createdAt")) {
                 call.getDouble("createdAt").toLong()
             } else {
                 System.currentTimeMillis()
             }
-
-            val session = registry.registerIncoming(
-                CallSession(
-                    callId = callId,
-                    callerId = callerId,
-                    callerName = callerName,
-                    handle = caller.optionalString("handle"),
-                    avatar = caller.optionalString("avatar"),
-                    media = media,
-                    state = CallState.RINGING,
-                    createdAt = createdAt,
-                    data = call.optionalStringMap("data"),
-                ),
+            val session = CallMaskNative.showIncomingCall(
+                context = reactContext,
+                callId = callId,
+                callerName = callerName,
+                callerId = caller.optionalString("id") ?: callId,
+                media = call.optionalString("media") ?: "audio",
+                handle = caller.optionalString("handle"),
+                avatar = caller.optionalString("avatar"),
+                createdAt = createdAt,
+                data = call.optionalStringMap("data"),
             )
-
-            if (session.state == CallState.RINGING || session.state == CallState.INCOMING) {
-                notifications.showIncoming(session)
-            }
             promise.resolve(session.toWritableMap())
         }.onFailure { error ->
             promise.reject("E_INVALID_ARGUMENT", error.message ?: "Invalid incoming call payload", error)
@@ -95,25 +85,11 @@ class CallMaskModule(
             promise.resolve(null)
             return
         }
-
-        if (current.state == CallState.ACTIVE || current.state == CallState.HELD) {
-            registry.transition(callId, CallState.ENDING)
-        }
-        val ended = registry.transition(callId, CallState.ENDED, reason ?: "local")
+        val ended = CallMaskNative.end(reactContext, callId, reason ?: "local")
         if (ended == null) {
             promise.reject("E_INVALID_STATE", "Cannot end call $callId from ${current.state.wireValue}")
             return
         }
-        notifications.cancel(callId)
-        CallEventBus.dispatch(
-            reactContext,
-            NativeCallEvent(
-                callId = callId,
-                type = "end",
-                state = ended.state.wireValue,
-                endReason = ended.endReason,
-            ),
-        )
         promise.resolve(null)
     }
 

@@ -15,7 +15,7 @@ class CallRegistry private constructor(context: Context) {
     @Synchronized
     fun registerIncoming(session: CallSession): CallSession {
         val existing = calls[session.callId]
-        if (existing != null && existing.state != CallState.ENDED) {
+        if (existing != null) {
             return existing
         }
 

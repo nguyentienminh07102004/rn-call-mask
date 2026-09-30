@@ -15,6 +15,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.content.ContextCompat
+import com.rncallmask.CallPresentationPolicy
+import com.rncallmask.CallRegistry
 import com.rncallmask.CallSession
 import com.rncallmask.CallState
 
@@ -84,7 +86,15 @@ internal class CallNotificationManager(private val context: Context) {
             .setStyle(NotificationCompat.CallStyle.forIncomingCall(person(call), decline, answer))
             .setSilent(call.silenced)
             .apply {
-                if (canUseFullScreen()) setFullScreenIntent(fullscreen, true)
+                if (
+                    canUseFullScreen() &&
+                    CallPresentationPolicy.mayOwnFullScreen(
+                        call.callId,
+                        CallRegistry.get(context).all(),
+                    )
+                ) {
+                    setFullScreenIntent(fullscreen, true)
+                }
             }
     }
 
