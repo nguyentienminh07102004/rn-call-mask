@@ -96,7 +96,7 @@ public final class CallMaskIOSRegistry {
             throw CallMaskIOSError.unknownCall(callId)
         }
         guard current.state.canTransition(to: next) else {
-            throw CallMaskIOSError.invalidState("(current.state.rawValue) -> (next.rawValue)")
+            throw CallMaskIOSError.invalidState("\\(current.state.rawValue) -> \\(next.rawValue)")
         }
 
         if current.state == next {
@@ -132,8 +132,8 @@ public enum CallMaskIOSError: Error, LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .invalidArgument(let value): return value
-        case .unknownCall(let callId): return "Unknown callId: (callId)"
-        case .invalidState(let value): return "Invalid call state: (value)"
+        case .unknownCall(let callId): return "Unknown callId: \\(callId)"
+        case .invalidState(let value): return "Invalid call state: \\(value)"
         case .callKit(let value): return value
         }
     }
