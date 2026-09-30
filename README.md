@@ -40,7 +40,19 @@ cd ios
 pod install
 ```
 
-Your host application is responsible for Apple signing/provisioning required for real VoIP pushes and PushKit. The library reports incoming VoIP pushes to CallKit natively without waiting for the React Native runtime.
+Your host application is responsible for Apple signing/provisioning required for real VoIP pushes and PushKit. Start PushKit from native application startup so VoIP delivery never depends on the React Native runtime:
+
+```swift
+import RNCallMask
+
+CallMaskPushKitManager.shared.onTokenUpdated = { token in
+    // Send the VoIP token to your backend.
+}
+
+CallMaskPushKitManager.shared.start()
+```
+
+The singleton keeps the `PKPushRegistry` alive and reports valid incoming VoIP pushes to CallKit natively.
 
 ### Android
 
