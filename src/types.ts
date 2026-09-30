@@ -57,6 +57,7 @@ export type CallEventType =
   | 'decline'
   | 'end'
   | 'silenced'
+  | 'stateChanged'
   | 'presentationChanged';
 
 export interface CallEvent {
