@@ -37,8 +37,11 @@ jobs:
         run: npm install --ignore-scripts --no-audit --no-fund
       - name: Lint
         run: npm run lint
-      - name: Typecheck
+      - name: Typecheck library
         run: npm run typecheck
+
+      - name: Typecheck example
+        run: npm run typecheck:example
       - name: Unit tests
         run: npm run test
       - name: Build TypeScript
