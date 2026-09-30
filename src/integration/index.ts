@@ -1,4 +1,5 @@
-export { CallLifecycleCoordinator } from './CallLifecycleCoordinator';
+export { CallLifecycleCoordinator, type CallControl } from './CallLifecycleCoordinator';
+export { createCallLifecycleCoordinator } from './createCallLifecycleCoordinator';
 export type {
   CallActionContext,
   CallEndContext,
