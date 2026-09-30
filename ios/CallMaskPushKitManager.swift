@@ -2,6 +2,8 @@ import Foundation
 import PushKit
 
 public final class CallMaskPushKitManager: NSObject, PKPushRegistryDelegate {
+    public static let shared = CallMaskPushKitManager()
+
     public typealias TokenHandler = (String) -> Void
     public typealias IncomingPayloadHandler = ([AnyHashable: Any]) -> Void
 
@@ -23,6 +25,8 @@ public final class CallMaskPushKitManager: NSObject, PKPushRegistryDelegate {
     }
 
     public func start() {
+        if registry != nil { return }
+
         let registry = PKPushRegistry(queue: queue)
         registry.delegate = self
         registry.desiredPushTypes = [.voIP]
