@@ -53,6 +53,15 @@ if (fs.existsSync('android')) {
   }
 }
 
+if (fs.existsSync('example')) {
+  for (const name of ['typecheck:example', 'ci:example:android']) {
+    if (!scripts[name]) {
+      console.error(`::error file=package.json::Example source exists but script ${name} is missing`);
+      process.exitCode = 1;
+    }
+  }
+}
+
 if (fs.existsSync('ios') && !scripts['ci:ios']) {
   console.error('::error file=package.json::iOS source exists but script ci:ios is missing');
   process.exitCode = 1;
