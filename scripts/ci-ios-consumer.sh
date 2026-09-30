@@ -63,6 +63,9 @@ if [[ ! -d "$PODS_PROJECT" ]]; then
   exit 1
 fi
 
+export REACT_NATIVE_PATH="$ROOT_DIR/node_modules/react-native"
+export NODE_BINARY="$(command -v node)"
+
 xcodebuild \
   -project "$PODS_PROJECT" \
   -target rn-call-mask \
