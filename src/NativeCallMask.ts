@@ -47,7 +47,8 @@ export function subscribeToNativeEvents(
   listener: (event: CallEvent) => void,
 ): NativeSubscription {
   getNativeModule();
-  return new NativeEventEmitter(NativeModules.RNCallMask).addListener(
+  const emitterModule = NativeModules.RNCallMask as NativeCallMaskModule;
+  return new NativeEventEmitter(emitterModule).addListener(
     'RNCallMaskEvent',
     listener,
   );
