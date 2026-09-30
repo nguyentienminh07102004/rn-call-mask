@@ -36,6 +36,11 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
         createdAt: Date = Date(),
         completion: @escaping (Result<CallMaskIOSSession, Error>) -> Void
     ) {
+        if let existing = registry.session(callId: callId), existing.state != .ended {
+            completion(.success(existing))
+            return
+        }
+
         do {
             let session = try registry.registerIncoming(
                 callId: callId,
@@ -54,6 +59,20 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
 
             provider.reportNewIncomingCall(with: session.uuid, update: update) { [weak self] error in
                 if let error {
+                    if let failed = try? self?.registry.transition(
+                        callId: session.callId,
+                        to: .ended,
+                        endReason: "failed"
+                    ) {
+                        self?.events.append(
+                            CallMaskIOSEvent(
+                                callId: failed.callId,
+                                type: "end",
+                                state: failed.state.rawValue,
+                                endReason: failed.endReason
+                            )
+                        )
+                    }
                     completion(.failure(CallMaskIOSError.callKit(error.localizedDescription)))
                     return
                 }
@@ -106,7 +125,24 @@ public final class CallMaskCallKitManager: NSObject, CXProviderDelegate {
 
     public func providerDidReset(_ provider: CXProvider) {
         for session in registry.allSessions() where session.state != .ended {
-            try? end(callId: session.callId, reason: "failed")
+            if session.state == .active || session.state == .held {
+                _ = try? registry.transition(callId: session.callId, to: .ending)
+            }
+            guard let ended = try? registry.transition(
+                callId: session.callId,
+                to: .ended,
+                endReason: "failed"
+            ) else {
+                continue
+            }
+            events.append(
+                CallMaskIOSEvent(
+                    callId: ended.callId,
+                    type: "end",
+                    state: ended.state.rawValue,
+                    endReason: ended.endReason
+                )
+            )
         }
     }
 
