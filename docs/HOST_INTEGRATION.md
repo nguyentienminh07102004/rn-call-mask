@@ -8,7 +8,7 @@ The optional `CallLifecycleCoordinator` connects those two layers without coupli
 
 ```ts
 import {
-  CallLifecycleCoordinator,
+  createCallLifecycleCoordinator,
   type CallMediaAdapter,
   type CallSignalingAdapter,
 } from 'rn-call-mask';
@@ -37,7 +37,7 @@ const media: CallMediaAdapter = {
   },
 };
 
-const calls = new CallLifecycleCoordinator({
+const calls = createCallLifecycleCoordinator({
   signaling,
   media,
   onError(error) {
