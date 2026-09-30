@@ -1,15 +1,19 @@
 package com.rncallmask.notification
 
+import android.Manifest
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
+import androidx.core.content.ContextCompat
 import com.rncallmask.CallSession
 import com.rncallmask.CallState
 
@@ -18,11 +22,7 @@ internal class CallNotificationManager(private val context: Context) {
 
     fun showIncoming(call: CallSession) {
         createChannel()
-        notificationManager.notify(
-            tag(call.callId),
-            NOTIFICATION_ID,
-            incomingBuilder(call).build(),
-        )
+        post(call.callId, incomingBuilder(call).build())
     }
 
     fun showOngoing(call: CallSession) {
@@ -36,23 +36,33 @@ internal class CallNotificationManager(private val context: Context) {
             .setSilent(true)
             .setOnlyAlertOnce(true)
 
-        notificationManager.notify(tag(call.callId), NOTIFICATION_ID, builder.build())
+        post(call.callId, builder.build())
     }
 
     fun silence(call: CallSession) {
         if (call.state != CallState.RINGING && call.state != CallState.INCOMING) return
-        notificationManager.notify(
-            tag(call.callId),
-            NOTIFICATION_ID,
-            incomingBuilder(call.copy(silenced = true)).build(),
-        )
+        post(call.callId, incomingBuilder(call.copy(silenced = true)).build())
     }
 
     fun cancel(callId: String) {
         notificationManager.cancel(tag(callId), NOTIFICATION_ID)
     }
 
-    fun notificationsEnabled(): Boolean = notificationManager.areNotificationsEnabled()
+    fun notificationsEnabled(): Boolean {
+        if (
+            Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+        return notificationManager.areNotificationsEnabled()
+    }
+
+    private fun post(callId: String, notification: Notification) {
+        if (!notificationsEnabled()) return
+        notificationManager.notify(tag(callId), NOTIFICATION_ID, notification)
+    }
 
     fun canUseFullScreen(): Boolean {
         if (Build.VERSION.SDK_INT < 34) return true
