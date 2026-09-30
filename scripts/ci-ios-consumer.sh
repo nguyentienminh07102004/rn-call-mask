@@ -38,7 +38,7 @@ consumer_path = ENV.fetch("RN_CALL_MASK_CONSUMER_PATH")
 
 require File.join(react_native_path, "scripts/react_native_pods")
 
-platform :ios, "15.0"
+platform :ios, "15.1"
 prepare_react_native_project!
 install! "cocoapods", :integrate_targets => false, :deterministic_uuids => false
 
