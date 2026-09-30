@@ -4,6 +4,11 @@ plugins {
     id 'com.android.library'
 }
 
+def agpMajorVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger()
+if (agpMajorVersion < 9) {
+    apply plugin: 'org.jetbrains.kotlin.android'
+}
+
 def safeExtGet(String property, Object fallback) {
     return rootProject.ext.has(property) ? rootProject.ext.get(property) : fallback
 }
