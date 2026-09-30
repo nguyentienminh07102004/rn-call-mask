@@ -1,9 +1,23 @@
+import groovy.json.JsonSlurper
+
 plugins {
     id 'com.android.library'
 }
 
 def safeExtGet(String property, Object fallback) {
     return rootProject.ext.has(property) ? rootProject.ext.get(property) : fallback
+}
+
+def resolveReactNativeVersion() {
+    def candidates = [
+        file("../node_modules/react-native/package.json"),
+        file("../../react-native/package.json"),
+    ]
+    def packageJson = candidates.find { it.exists() }
+    if (packageJson == null) {
+        return "0.87.1"
+    }
+    return new JsonSlurper().parse(packageJson).version
 }
 
 android {
@@ -34,6 +48,6 @@ android {
 dependencies {
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.core:core-telecom:1.0.1'
-    compileOnly 'com.facebook.react:react-android'
+    compileOnly "com.facebook.react:react-android:${resolveReactNativeVersion()}"
     testImplementation 'junit:junit:4.13.2'
 }
