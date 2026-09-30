@@ -1,0 +1,93 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'ios/**'
+      - 'example/ios/**'
+      - '*.podspec'
+      - 'src/**'
+      - '.github/workflows/ios-ci.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'example/ios/**'
+      - '*.podspec'
+      - 'src/**'
+      - '.github/workflows/ios-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: iOS native validation
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect iOS source
+        id: ios
+        shell: bash
+        run: |
+          if [[ -d ios || -d example/ios ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "iOS source not present yet; native validation is bootstrap-skipped."
+          fi
+
+      - name: Require package scaffold for native source
+        if: steps.ios.outputs.enabled == 'true'
+        run: test -f package.json
+
+      - name: Setup Node from .nvmrc
+        if: steps.ios.outputs.enabled == 'true' && hashFiles('.nvmrc') != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup fallback Node
+        if: steps.ios.outputs.enabled == 'true' && hashFiles('.nvmrc') == ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable Corepack
+        if: steps.ios.outputs.enabled == 'true'
+        run: corepack enable
+
+      - name: Install dependencies
+        if: steps.ios.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          if [[ -f pnpm-lock.yaml ]]; then
+            pnpm install --frozen-lockfile
+          elif [[ -f yarn.lock ]]; then
+            yarn install --immutable
+          elif [[ -f package-lock.json ]]; then
+            npm ci
+          else
+            echo "::error::A lockfile is required"
+            exit 1
+          fi
+
+      - name: Run iOS CI script
+        if: steps.ios.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          node -e "const p=require('./package.json'); if(!p.scripts?.['ci:ios']) { console.error('Missing package script ci:ios'); process.exit(1) }"
+          if [[ -f pnpm-lock.yaml ]]; then
+            pnpm ci:ios
+          elif [[ -f yarn.lock ]]; then
+            yarn ci:ios
+          else
+            npm run ci:ios
+          fi
