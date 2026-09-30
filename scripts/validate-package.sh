@@ -7,7 +7,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 cd "$ROOT_DIR"
 
-PACK_JSON="$(npm pack --json --pack-destination "$TMP_DIR")"
+PACK_JSON="$(npm pack --json --ignore-scripts --pack-destination "$TMP_DIR")"
 TARBALL="$(node -e 'const p=JSON.parse(process.argv[1]); process.stdout.write(p[0].filename)' "$PACK_JSON")"
 TARBALL_PATH="$TMP_DIR/$TARBALL"
 
