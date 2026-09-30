@@ -46,3 +46,5 @@ jobs:
         run: npm run test
       - name: Build TypeScript
         run: npm run build
+      - name: Validate npm package tarball
+        run: npm run ci:pack
