@@ -42,9 +42,6 @@ npm install --prefix "$EXAMPLE_DIR" --ignore-scripts --no-audit --no-fund
 
 cd "$EXAMPLE_DIR"
 node - <<'NODE'
-const config = require('@react-native-community/cli').bin
-  ? null
-  : null;
 const pkg = require('rn-call-mask/package.json');
 if (pkg.name !== 'rn-call-mask') {
   throw new Error('Packed rn-call-mask dependency was not installed');
