@@ -111,6 +111,11 @@ class CallMaskModule(
             return
         }
         notifications.showOngoing(active)
+        CoreTelecomCoordinator.syncSetActive(reactContext, callId)
+        CallEventBus.dispatch(
+            reactContext,
+            NativeCallEvent(callId = callId, type = "stateChanged", state = active.state.wireValue),
+        )
         promise.resolve(null)
     }
 
