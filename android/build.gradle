@@ -1,14 +1,18 @@
 plugins {
-    id 'com.android.library' version '9.4.0'
+    id 'com.android.library'
+}
+
+def safeExtGet(String property, Object fallback) {
+    return rootProject.ext.has(property) ? rootProject.ext.get(property) : fallback
 }
 
 android {
     namespace 'com.rncallmask'
-    compileSdk 36
+    compileSdk safeExtGet('compileSdkVersion', 36)
 
     defaultConfig {
-        minSdk 26
-        targetSdk 36
+        minSdk safeExtGet('minSdkVersion', 26)
+        targetSdk safeExtGet('targetSdkVersion', 36)
         consumerProguardFiles 'consumer-rules.pro'
     }
 
@@ -30,6 +34,6 @@ android {
 dependencies {
     implementation 'androidx.core:core-ktx:1.17.0'
     implementation 'androidx.core:core-telecom:1.0.1'
-    compileOnly 'com.facebook.react:react-android:0.87.1'
+    compileOnly 'com.facebook.react:react-android'
     testImplementation 'junit:junit:4.13.2'
 }
