@@ -2,6 +2,7 @@ package com.rncallmask.notification
 
 import android.content.Context
 import com.rncallmask.CallEventBus
+import com.rncallmask.CoreTelecomCoordinator
 import com.rncallmask.CallRegistry
 import com.rncallmask.CallState
 import com.rncallmask.NativeCallEvent
@@ -15,6 +16,7 @@ internal object CallActionHandler {
             CallActionReceiver.ACTION_ANSWER -> {
                 val call = registry.transition(callId, CallState.CONNECTING) ?: return
                 notifications.showOngoing(call)
+                CoreTelecomCoordinator.syncAnswer(context, callId)
                 CallEventBus.dispatch(
                     context,
                     NativeCallEvent(callId = callId, type = "answer", state = call.state.wireValue),
@@ -24,6 +26,7 @@ internal object CallActionHandler {
             CallActionReceiver.ACTION_DECLINE -> {
                 val call = registry.transition(callId, CallState.ENDED, "declined") ?: return
                 notifications.cancel(callId)
+                CoreTelecomCoordinator.syncDecline(context, callId)
                 CallEventBus.dispatch(
                     context,
                     NativeCallEvent(
@@ -46,6 +49,7 @@ internal object CallActionHandler {
                     else -> registry.transition(callId, CallState.ENDED, "local")
                 } ?: return
                 notifications.cancel(callId)
+                CoreTelecomCoordinator.syncEnd(context, callId)
                 CallEventBus.dispatch(
                     context,
                     NativeCallEvent(
