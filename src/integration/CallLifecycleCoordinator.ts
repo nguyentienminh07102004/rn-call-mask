@@ -1,4 +1,3 @@
-import { CallMask } from '../CallMask';
 import type {
   CallEndReason,
   CallEvent,
@@ -12,7 +11,7 @@ import type {
   RemoteTerminationReason,
 } from './types';
 
-interface CallControl {
+export interface CallControl {
   addEventListener(listener: (event: CallEvent) => void): NativeSubscription;
   consumePendingEvents(): Promise<CallEvent[]>;
   markActive(callId: string): Promise<void>;
@@ -46,7 +45,7 @@ export class CallLifecycleCoordinator {
 
   constructor(
     options: CallLifecycleCoordinatorOptions,
-    control: CallControl = CallMask,
+    control: CallControl,
   ) {
     this.options = {
       ...options,
