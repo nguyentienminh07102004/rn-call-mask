@@ -18,10 +18,11 @@
     "lint": "eslint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "validate": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "validate": "npm run lint && npm run typecheck && npm run typecheck:example && npm run test && npm run build",
     "ci:android": "gradle -p android clean assembleDebug lintDebug testDebugUnitTest",
     "example:android": "gradle -p example/android assembleDebug",
-    "ci:example:android": "gradle -p example/android clean assembleDebug lintDebug"
+    "ci:example:android": "gradle -p example/android clean assembleDebug lintDebug",
+    "typecheck:example": "tsc -p example/tsconfig.json --noEmit"
   },
   "peerDependencies": {
     "react-native": ">=0.86.0 <0.89.0"
