@@ -8,6 +8,8 @@ on:
       - 'example/ios/**'
       - '*.podspec'
       - 'src/**'
+      - 'scripts/ci-ios.sh'
+      - 'package.json'
       - '.github/workflows/ios-ci.yml'
   pull_request:
     paths:
@@ -15,6 +17,8 @@ on:
       - 'example/ios/**'
       - '*.podspec'
       - 'src/**'
+      - 'scripts/ci-ios.sh'
+      - 'package.json'
       - '.github/workflows/ios-ci.yml'
   workflow_dispatch:
 
