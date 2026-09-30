@@ -19,21 +19,30 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "validate": "npm run lint && npm run typecheck && npm run test && npm run build",
-    "ci:android": "gradle -p android clean assembleDebug lintDebug testDebugUnitTest"
+    "ci:android": "gradle -p android clean assembleDebug lintDebug testDebugUnitTest",
+    "example:android": "gradle -p example/android assembleDebug",
+    "ci:example:android": "gradle -p example/android clean assembleDebug lintDebug"
   },
   "peerDependencies": {
     "react-native": ">=0.86.0 <0.89.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
-    "@types/react": "^19.1.12",
+    "@types/react": "^19.2.0",
     "eslint": "^9.35.0",
     "globals": "^16.3.0",
     "react": "19.2.3",
     "react-native": "0.87.1",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.42.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@react-native-community/cli": "20.2.0",
+    "@react-native-community/cli-platform-android": "20.2.0",
+    "@react-native/babel-preset": "0.87.1",
+    "@react-native/metro-config": "0.87.1",
+    "@react-native/typescript-config": "0.87.1",
+    "react-test-renderer": "19.2.3",
+    "prettier": "2.8.8"
   },
   "engines": {
     "node": ">=22"
