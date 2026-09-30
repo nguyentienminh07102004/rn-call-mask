@@ -52,13 +52,6 @@ target "RnCallMaskConsumer" do
   pod "rn-call-mask", :path => package_path
 end
 
-post_install do |installer|
-  react_native_post_install(
-    installer,
-    react_native_path,
-    :mac_catalyst_enabled => false
-  )
-end
 RUBY
 
 cd "$CONSUMER_DIR"
