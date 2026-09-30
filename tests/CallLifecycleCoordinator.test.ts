@@ -5,11 +5,7 @@ import type {
   CallMediaAdapter,
   CallSignalingAdapter,
 } from '../src/integration/types';
-import type {
-  CallEndReason,
-  CallEvent,
-  NativeSubscription,
-} from '../src/types';
+import type { CallEvent, NativeSubscription } from '../src/types';
 
 function event(
   overrides: Partial<CallEvent> & Pick<CallEvent, 'eventId' | 'callId' | 'type'>,
