@@ -21,7 +21,7 @@
     "docs/HOST_INTEGRATION.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run clean:lib && tsc -p tsconfig.build.json",
     "lint": "eslint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
@@ -33,7 +33,8 @@
     "ci:ios": "bash scripts/ci-ios.sh",
     "prepack": "npm run build",
     "prepublishOnly": "npm run validate && npm run ci:pack",
-    "ci:pack": "bash scripts/validate-package.sh"
+    "ci:pack": "bash scripts/validate-package.sh",
+    "clean:lib": "node -e \"require('fs').rmSync('lib',{recursive:true,force:true})\""
   },
   "peerDependencies": {
     "react-native": ">=0.86.0 <0.89.0"
