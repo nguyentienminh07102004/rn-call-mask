@@ -9,6 +9,9 @@ required_files=(
   ".agents/skills/android-call-notifications/SKILL.md"
   ".agents/skills/ios-callkit-pushkit/SKILL.md"
   ".agents/skills/ci-validation/SKILL.md"
+  "package.json"
+  "tsconfig.json"
+  "src/index.ts"
 )
 
 for path in "${required_files[@]}"; do
@@ -18,31 +21,39 @@ for path in "${required_files[@]}"; do
   fi
 done
 
-if [[ -f package.json ]]; then
-  node <<'NODE'
+node <<'NODE'
 const fs = require('fs');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const scripts = pkg.scripts || {};
-const required = ['lint', 'typecheck', 'test'];
-for (const name of required) {
+for (const name of ['lint', 'typecheck', 'test', 'build']) {
   if (!scripts[name]) {
     console.error(`::error file=package.json::Missing required script: ${name}`);
     process.exitCode = 1;
   }
 }
 
-const hasAndroid = fs.existsSync('android') || fs.existsSync('example/android');
-const hasIOS = fs.existsSync('ios') || fs.existsSync('example/ios');
-
-if (hasAndroid && !scripts['ci:android']) {
-  console.error('::error file=package.json::Android source exists but script ci:android is missing');
-  process.exitCode = 1;
+if (fs.existsSync('android')) {
+  for (const path of [
+    'android/build.gradle',
+    'android/settings.gradle',
+    'android/src/main/AndroidManifest.xml',
+    'android/src/main/java/com/rncallmask/CallMaskModule.kt',
+  ]) {
+    if (!fs.existsSync(path)) {
+      console.error(`::error file=${path}::Android scaffold is incomplete`);
+      process.exitCode = 1;
+    }
+  }
+  if (!scripts['ci:android']) {
+    console.error('::error file=package.json::Android source exists but script ci:android is missing');
+    process.exitCode = 1;
+  }
 }
-if (hasIOS && !scripts['ci:ios']) {
+
+if (fs.existsSync('ios') && !scripts['ci:ios']) {
   console.error('::error file=package.json::iOS source exists but script ci:ios is missing');
   process.exitCode = 1;
 }
 NODE
-fi
 
 echo "Repository policy validation passed."
