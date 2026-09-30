@@ -193,11 +193,21 @@ end(callId, cancelled)
 close native presentation
 ```
 
+Implemented foundation:
+
+- injectable `CallSignalingAdapter` and `CallMediaAdapter`;
+- `CallLifecycleCoordinator` with per-`callId` serialization;
+- native `eventId` deduplication across live delivery and pending replay;
+- remote-cancel invalidation for in-flight answer races;
+- failure convergence when signaling or media setup fails;
+- host integration guide and race-condition regression tests.
+
 Exit criteria:
 
 - native presentation and backend call state converge reliably;
 - network failure maps to a terminal end reason;
-- no WebRTC implementation leaks into the notification module.
+- no WebRTC implementation leaks into the notification module;
+- real host signaling/media adapter passes device integration tests.
 
 ## Phase 6 — iOS CallKit + PushKit
 
