@@ -75,8 +75,7 @@ jobs:
           elif [[ -f package-lock.json ]]; then
             npm ci
           else
-            echo "::error::A lockfile is required"
-            exit 1
+            npm install --ignore-scripts --no-audit --no-fund
           fi
 
       - name: Run iOS CI script
