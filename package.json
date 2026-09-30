@@ -28,7 +28,7 @@
     "typecheck:example": "tsc -p example/tsconfig.json --noEmit",
     "ci:ios": "bash scripts/ci-ios.sh",
     "prepack": "npm run build",
-    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run ci:pack",
+    "prepublishOnly": "npm run validate && npm run ci:pack",
     "ci:pack": "bash scripts/validate-package.sh"
   },
   "peerDependencies": {
