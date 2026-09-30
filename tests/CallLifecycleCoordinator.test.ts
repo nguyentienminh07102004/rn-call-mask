@@ -36,29 +36,42 @@ function deferred(): {
 
 function harness() {
   let listener: ((value: CallEvent) => void) | undefined;
+
+  const addEventListener = vi.fn(
+    (next: (value: CallEvent) => void): NativeSubscription => {
+      listener = next;
+      return { remove: vi.fn() };
+    },
+  );
+  const consumePendingEvents = vi.fn(() =>
+    Promise.resolve([] as CallEvent[]),
+  );
+  const markActive = vi.fn(() => Promise.resolve());
+  const nativeEnd = vi.fn(() => Promise.resolve());
+
   const control = {
-    addEventListener: vi.fn(
-      (next: (value: CallEvent) => void): NativeSubscription => {
-        listener = next;
-        return { remove: vi.fn() };
-      },
-    ),
-    consumePendingEvents: vi.fn(async (): Promise<CallEvent[]> => []),
-    markActive: vi.fn(async (_callId: string): Promise<void> => undefined),
-    end: vi.fn(
-      async (_callId: string, _reason?: CallEndReason): Promise<void> => undefined,
-    ),
+    addEventListener,
+    consumePendingEvents,
+    markActive,
+    end: nativeEnd,
   };
+
+  const accept = vi.fn<CallSignalingAdapter['accept']>(() => Promise.resolve());
+  const decline = vi.fn<CallSignalingAdapter['decline']>(() => Promise.resolve());
+  const signalingEnd = vi.fn<CallSignalingAdapter['end']>(() => Promise.resolve());
 
   const signaling: CallSignalingAdapter = {
-    accept: vi.fn(async () => undefined),
-    decline: vi.fn(async () => undefined),
-    end: vi.fn(async () => undefined),
+    accept,
+    decline,
+    end: signalingEnd,
   };
 
+  const connect = vi.fn<CallMediaAdapter['connect']>(() => Promise.resolve());
+  const disconnect = vi.fn<CallMediaAdapter['disconnect']>(() => Promise.resolve());
+
   const media: CallMediaAdapter = {
-    connect: vi.fn(async () => undefined),
-    disconnect: vi.fn(async () => undefined),
+    connect,
+    disconnect,
   };
 
   const errors: unknown[] = [];
@@ -72,11 +85,18 @@ function harness() {
   );
 
   return {
-    control,
-    signaling,
-    media,
     coordinator,
     errors,
+    spies: {
+      accept,
+      decline,
+      signalingEnd,
+      connect,
+      disconnect,
+      markActive,
+      nativeEnd,
+      consumePendingEvents,
+    },
     emit(value: CallEvent) {
       listener?.(value);
     },
@@ -95,9 +115,9 @@ describe('CallLifecycleCoordinator', () => {
 
     await h.coordinator.handleNativeEvent(answer);
 
-    expect(h.signaling.accept).toHaveBeenCalledOnce();
-    expect(h.media.connect).toHaveBeenCalledOnce();
-    expect(h.control.markActive).toHaveBeenCalledWith('A');
+    expect(h.spies.accept).toHaveBeenCalledOnce();
+    expect(h.spies.connect).toHaveBeenCalledOnce();
+    expect(h.spies.markActive).toHaveBeenCalledWith('A');
     expect(h.errors).toEqual([]);
   });
 
@@ -115,14 +135,14 @@ describe('CallLifecycleCoordinator', () => {
       h.coordinator.handleNativeEvent(answer),
     ]);
 
-    expect(h.signaling.accept).toHaveBeenCalledOnce();
-    expect(h.media.connect).toHaveBeenCalledOnce();
+    expect(h.spies.accept).toHaveBeenCalledOnce();
+    expect(h.spies.connect).toHaveBeenCalledOnce();
   });
 
   it('prevents media activation when remote cancellation wins an answer race', async () => {
     const h = harness();
     const accept = deferred();
-    vi.mocked(h.signaling.accept).mockReturnValueOnce(accept.promise);
+    h.spies.accept.mockReturnValueOnce(accept.promise);
 
     const answerPromise = h.coordinator.handleNativeEvent(
       event({
@@ -134,7 +154,7 @@ describe('CallLifecycleCoordinator', () => {
     );
 
     await vi.waitFor(() => {
-      expect(h.signaling.accept).toHaveBeenCalledOnce();
+      expect(h.spies.accept).toHaveBeenCalledOnce();
     });
 
     const remotePromise = h.coordinator.handleRemoteTermination('A', 'cancelled');
@@ -142,15 +162,15 @@ describe('CallLifecycleCoordinator', () => {
 
     await Promise.all([answerPromise, remotePromise]);
 
-    expect(h.media.connect).not.toHaveBeenCalled();
-    expect(h.control.markActive).not.toHaveBeenCalled();
-    expect(h.control.end).toHaveBeenCalledWith('A', 'cancelled');
-    expect(h.media.disconnect).toHaveBeenCalled();
+    expect(h.spies.connect).not.toHaveBeenCalled();
+    expect(h.spies.markActive).not.toHaveBeenCalled();
+    expect(h.spies.nativeEnd).toHaveBeenCalledWith('A', 'cancelled');
+    expect(h.spies.disconnect).toHaveBeenCalled();
   });
 
   it('ends native state as failed when signaling accept fails', async () => {
     const h = harness();
-    vi.mocked(h.signaling.accept).mockRejectedValueOnce(new Error('offline'));
+    h.spies.accept.mockRejectedValueOnce(new Error('offline'));
 
     await h.coordinator.handleNativeEvent(
       event({
@@ -160,14 +180,14 @@ describe('CallLifecycleCoordinator', () => {
       }),
     );
 
-    expect(h.media.connect).not.toHaveBeenCalled();
-    expect(h.control.end).toHaveBeenCalledWith('A', 'failed');
+    expect(h.spies.connect).not.toHaveBeenCalled();
+    expect(h.spies.nativeEnd).toHaveBeenCalledWith('A', 'failed');
     expect(h.errors).toHaveLength(1);
   });
 
   it('converges backend and native state when media connect fails', async () => {
     const h = harness();
-    vi.mocked(h.media.connect).mockRejectedValueOnce(new Error('ice failed'));
+    h.spies.connect.mockRejectedValueOnce(new Error('ice failed'));
 
     await h.coordinator.handleNativeEvent(
       event({
@@ -178,12 +198,12 @@ describe('CallLifecycleCoordinator', () => {
       }),
     );
 
-    expect(h.signaling.accept).toHaveBeenCalledOnce();
-    expect(h.signaling.end).toHaveBeenCalledWith(
+    expect(h.spies.accept).toHaveBeenCalledOnce();
+    expect(h.spies.signalingEnd).toHaveBeenCalledWith(
       expect.objectContaining({ callId: 'A', reason: 'failed' }),
     );
-    expect(h.control.end).toHaveBeenCalledWith('A', 'failed');
-    expect(h.control.markActive).not.toHaveBeenCalled();
+    expect(h.spies.nativeEnd).toHaveBeenCalledWith('A', 'failed');
+    expect(h.spies.markActive).not.toHaveBeenCalled();
   });
 
   it('notifies backend for local end but does not echo remote end', async () => {
@@ -209,14 +229,14 @@ describe('CallLifecycleCoordinator', () => {
       }),
     );
 
-    expect(h.signaling.end).toHaveBeenCalledTimes(1);
-    expect(h.signaling.end).toHaveBeenCalledWith(
+    expect(h.spies.signalingEnd).toHaveBeenCalledTimes(1);
+    expect(h.spies.signalingEnd).toHaveBeenCalledWith(
       expect.objectContaining({
         callId: 'A',
         reason: 'local',
       }),
     );
-    expect(h.media.disconnect).toHaveBeenCalledTimes(2);
+    expect(h.spies.disconnect).toHaveBeenCalledTimes(2);
   });
 
   it('subscribes before replaying pending events and still processes an event once', async () => {
@@ -227,17 +247,17 @@ describe('CallLifecycleCoordinator', () => {
       type: 'answer',
     });
 
-    vi.mocked(h.control.consumePendingEvents).mockImplementationOnce(async () => {
+    h.spies.consumePendingEvents.mockImplementationOnce(() => {
       h.emit(pending);
-      return [pending];
+      return Promise.resolve([pending]);
     });
 
     await h.coordinator.start();
     await vi.waitFor(() => {
-      expect(h.signaling.accept).toHaveBeenCalledOnce();
+      expect(h.spies.accept).toHaveBeenCalledOnce();
     });
 
-    expect(h.media.connect).toHaveBeenCalledOnce();
+    expect(h.spies.connect).toHaveBeenCalledOnce();
     h.coordinator.stop();
   });
 });
