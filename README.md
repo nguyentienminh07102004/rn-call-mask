@@ -10,7 +10,7 @@ Supported package range:
 
 - React Native `>=0.86 <0.89`;
 - Android minSdk 26;
-- iOS 15+;
+- iOS 15.1+;
 - Android Core-Telecom integration;
 - iOS CallKit + PushKit integration;
 - host-owned signaling and WebRTC/SIP media.
