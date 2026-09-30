@@ -73,6 +73,8 @@ xcodebuild \
   -sdk iphonesimulator \
   CODE_SIGNING_ALLOWED=NO \
   ONLY_ACTIVE_ARCH=YES \
+  SWIFT_ENABLE_EXPLICIT_MODULES=NO \
+  CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES \
   build
 
 echo "iOS packed consumer pod install/build passed."
