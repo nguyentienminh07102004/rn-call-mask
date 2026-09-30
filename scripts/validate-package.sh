@@ -44,6 +44,11 @@ if grep -q '^package/ios/Tests/' "$CONTENTS"; then
   exit 1
 fi
 
+if grep -q '^package/android/src/test/' "$CONTENTS"; then
+  echo "::error::Android native test sources must not be published"
+  exit 1
+fi
+
 if grep -q '^package/tests/' "$CONTENTS"; then
   echo "::error::JavaScript test sources must not be published"
   exit 1
