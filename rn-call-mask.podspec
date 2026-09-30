@@ -14,6 +14,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/*.{swift,h,m,mm}"
   s.exclude_files = "ios/Tests/**/*"
   s.swift_version = "5.9"
+  s.module_name = "RNCallMask"
   s.frameworks = "CallKit", "PushKit", "AVFAudio"
   s.dependency "React-Core"
 end
