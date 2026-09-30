@@ -9,6 +9,7 @@ on:
       - '*.podspec'
       - 'src/**'
       - 'scripts/ci-ios.sh'
+      - 'scripts/ci-ios-consumer.sh'
       - 'package.json'
       - '.github/workflows/ios-ci.yml'
   pull_request:
