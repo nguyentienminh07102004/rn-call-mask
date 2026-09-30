@@ -5,6 +5,7 @@ required_files=(
   "AGENTS.md"
   "docs/REQUIREMENTS.md"
   "docs/ROADMAP.md"
+  "docs/TEST_MATRIX.md"
   ".agents/skills/call-state-machine/SKILL.md"
   ".agents/skills/android-call-notifications/SKILL.md"
   ".agents/skills/ios-callkit-pushkit/SKILL.md"
@@ -12,6 +13,8 @@ required_files=(
   "package.json"
   "tsconfig.json"
   "src/index.ts"
+  "example/App.tsx"
+  "example/android/app/src/main/AndroidManifest.xml"
 )
 
 for path in "${required_files[@]}"; do
