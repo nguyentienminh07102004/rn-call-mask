@@ -52,11 +52,39 @@ On app startup, consume native actions that happened before JavaScript listeners
 const pending = await CallMask.consumePendingEvents();
 ```
 
+## Example device harness
+
+Build the Android library and example app:
+
+```bash
+npm install
+npm run ci:android
+npm run ci:example:android
+```
+
+The example provides Call A/B controls, capabilities, event replay, and a native debug receiver for cold-start testing. Follow `docs/TEST_MATRIX.md` for the exact ADB commands and device scenarios.
+
+## Native host integration
+
+Android push/service code can show a real incoming call without booting React Native:
+
+```kotlin
+CallMaskNative.showIncomingCall(
+    context = context,
+    callId = payload.callId,
+    callerName = payload.callerName,
+    media = "audio",
+)
+```
+
+The host app still owns signaling and WebRTC/SIP media.
+
 ## Validation
 
 ```bash
 npm run validate
 npm run ci:android
+npm run ci:example:android
 ```
 
-Read `AGENTS.md`, `docs/REQUIREMENTS.md`, and `docs/ROADMAP.md` before changing lifecycle behavior.
+Read `AGENTS.md`, `docs/REQUIREMENTS.md`, `docs/ROADMAP.md`, and `docs/TEST_MATRIX.md` before changing lifecycle behavior.
