@@ -1,6 +1,7 @@
 package com.rncallmask.notification
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -59,6 +60,7 @@ internal class CallNotificationManager(private val context: Context) {
         return notificationManager.areNotificationsEnabled()
     }
 
+    @SuppressLint("MissingPermission")
     private fun post(callId: String, notification: Notification) {
         if (!notificationsEnabled()) return
         notificationManager.notify(tag(callId), NOTIFICATION_ID, notification)
