@@ -85,7 +85,8 @@ public final class CallMaskPushKitManager: NSObject, PKPushRegistryDelegate {
     }
 
     private func stringValue(_ value: Any?) -> String? {
-        (value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-            .flatMap { $0.isEmpty ? nil : $0 }
+        guard let raw = value as? String else { return nil }
+        let normalized = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return normalized.isEmpty ? nil : normalized
     }
 }
