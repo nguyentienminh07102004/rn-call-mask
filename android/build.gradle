@@ -1,0 +1,59 @@
+import groovy.json.JsonSlurper
+
+plugins {
+    id 'com.android.library'
+}
+
+def agpMajorVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger()
+def builtInKotlinDisabled = providers.gradleProperty('android.builtInKotlin').orNull == 'false'
+if (agpMajorVersion < 9 || builtInKotlinDisabled) {
+    apply plugin: 'org.jetbrains.kotlin.android'
+}
+
+def safeExtGet(String property, Object fallback) {
+    return rootProject.ext.has(property) ? rootProject.ext.get(property) : fallback
+}
+
+def resolveReactNativeVersion() {
+    def candidates = [
+        file("../node_modules/react-native/package.json"),
+        file("../../react-native/package.json"),
+    ]
+    def packageJson = candidates.find { it.exists() }
+    if (packageJson == null) {
+        return "0.87.1"
+    }
+    return new JsonSlurper().parse(packageJson).version
+}
+
+android {
+    namespace 'com.rncallmask'
+    compileSdk safeExtGet('compileSdkVersion', 36)
+
+    defaultConfig {
+        minSdk safeExtGet('minSdkVersion', 26)
+        targetSdk safeExtGet('targetSdkVersion', 36)
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError true
+        warningsAsErrors false
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.core:core-telecom:1.0.1'
+    compileOnly "com.facebook.react:react-android:${resolveReactNativeVersion()}"
+    testImplementation 'junit:junit:4.13.2'
+}

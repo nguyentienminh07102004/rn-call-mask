@@ -1,0 +1,9 @@
+node_modules/
+lib/
+coverage/
+.DS_Store
+*.log
+android/.gradle/
+android/build/
+android/local.properties
+.idea/

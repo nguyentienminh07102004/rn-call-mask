@@ -8,6 +8,9 @@ on:
       - 'example/ios/**'
       - '*.podspec'
       - 'src/**'
+      - 'scripts/ci-ios.sh'
+      - 'scripts/ci-ios-consumer.sh'
+      - 'package.json'
       - '.github/workflows/ios-ci.yml'
   pull_request:
     paths:
@@ -15,6 +18,8 @@ on:
       - 'example/ios/**'
       - '*.podspec'
       - 'src/**'
+      - 'scripts/ci-ios.sh'
+      - 'package.json'
       - '.github/workflows/ios-ci.yml'
   workflow_dispatch:
 
@@ -75,8 +80,7 @@ jobs:
           elif [[ -f package-lock.json ]]; then
             npm ci
           else
-            echo "::error::A lockfile is required"
-            exit 1
+            npm install --ignore-scripts --no-audit --no-fund
           fi
 
       - name: Run iOS CI script

@@ -291,6 +291,23 @@ Acceptance criteria:
 - stale Answer action after cancellation is rejected as invalid state;
 - full-screen activity self-closes if its call no longer exists/rings.
 
+### CALL-012 — Host signaling/media convergence
+
+The optional TypeScript integration layer may orchestrate native lifecycle events with host-provided signaling and media adapters, but must not depend on a concrete backend or media engine.
+
+Acceptance criteria:
+
+- Answer order is `signaling.accept → media.connect → markActive`;
+- `markActive` is never called if signaling or media setup fails;
+- duplicate native `eventId` values are processed at most once per coordinator lifecycle;
+- async work is serialized per `callId` without blocking unrelated calls;
+- remote cancellation invalidates an in-flight Answer before late signaling completion can activate media;
+- media setup failure converges backend and native state to `failed`;
+- backend-originated remote/cancelled/busy/missed endings are not echoed back through `signaling.end`;
+- WebRTC/SIP/socket/API implementation details remain outside the library.
+
+See `docs/HOST_INTEGRATION.md`.
+
 ## 6. Android requirements
 
 ### AND-001 — Call notification channel
