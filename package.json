@@ -1,6 +1,6 @@
 {
   "name": "rn-call-mask",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "Native-first incoming call presentation and lifecycle bridge for React Native VoIP apps.",
   "license": "MIT",
   "main": "lib/index.js",
