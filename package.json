@@ -38,24 +38,24 @@
     "ci:ios:consumer": "bash scripts/ci-ios-consumer.sh"
   },
   "peerDependencies": {
-    "react-native": ">=0.87.0 <0.88.0"
+    "react-native": ">=0.78.0 <0.79.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
-    "@types/react": "^19.2.0",
+    "@types/react": "^19.0.0",
     "eslint": "^9.35.0",
     "globals": "^16.3.0",
-    "react": "19.2.3",
-    "react-native": "0.87.1",
+    "react": "19.0.0",
+    "react-native": "0.78.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.42.0",
     "vitest": "^3.2.4",
-    "@react-native-community/cli": "20.2.0",
-    "@react-native-community/cli-platform-android": "20.2.0",
-    "@react-native/babel-preset": "0.87.1",
-    "@react-native/metro-config": "0.87.1",
-    "@react-native/typescript-config": "0.87.1",
-    "react-test-renderer": "19.2.3",
+    "@react-native-community/cli": "15.0.1",
+    "@react-native-community/cli-platform-android": "15.0.1",
+    "@react-native/babel-preset": "0.78.0",
+    "@react-native/metro-config": "0.78.0",
+    "@react-native/typescript-config": "0.78.0",
+    "react-test-renderer": "19.0.0",
     "prettier": "2.8.8",
     "@types/jest": "^29.5.13"
   },
