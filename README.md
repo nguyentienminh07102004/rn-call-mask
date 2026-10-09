@@ -8,7 +8,7 @@ Current package version: `0.1.0-beta.1`.
 
 Supported package range:
 
-- React Native `>=0.78 <0.79` (0.78.x support);
+- React Native `>=0.78 <0.79` (validated against 0.78.3);
 - Node.js `>=20.19.4`;
 - Android minSdk 26;
 - iOS 15.1+;
