@@ -25,26 +25,44 @@ internal class CallNotificationManager(private val context: Context) {
 
     fun showIncoming(call: CallSession) {
         createChannel()
-        post(call.callId, incomingBuilder(call).build())
+
+        val mayOwnFullScreen = CallPresentationPolicy.mayOwnFullScreen(
+            call.callId,
+            CallRegistry.get(context).all(),
+        )
+
+        val notification = if (mayOwnFullScreen) {
+            incomingCallStyleBuilder(call).build()
+        } else {
+            incomingFallbackBuilder(call).build()
+        }
+
+        runCatching {
+            post(call.callId, notification)
+        }.recoverCatching {
+            // Some Android/OEM builds may still reject CallStyle after applying
+            // notification policy. Never fail the call presentation because of that.
+            post(call.callId, incomingFallbackBuilder(call).build())
+        }.getOrThrow()
     }
 
     fun showOngoing(call: CallSession) {
         createChannel()
-        val person = person(call)
         val hangup = actionPendingIntent(call, CallActionReceiver.ACTION_END)
         val builder = baseBuilder(call)
             .setContentText(if (call.state == CallState.CONNECTING) "Connecting…" else "Call in progress")
             .setOngoing(true)
-            .setStyle(NotificationCompat.CallStyle.forOngoingCall(person, hangup))
             .setSilent(true)
             .setOnlyAlertOnce(true)
+            .addPerson(person(call))
+            .addAction(0, "Hang up", hangup)
 
         post(call.callId, builder.build())
     }
 
     fun silence(call: CallSession) {
         if (call.state != CallState.RINGING && call.state != CallState.INCOMING) return
-        post(call.callId, incomingBuilder(call.copy(silenced = true)).build())
+        showIncoming(call.copy(silenced = true))
     }
 
     fun cancel(callId: String) {
@@ -74,10 +92,9 @@ internal class CallNotificationManager(private val context: Context) {
         return manager.canUseFullScreenIntent()
     }
 
-    private fun incomingBuilder(call: CallSession): NotificationCompat.Builder {
+    private fun incomingCallStyleBuilder(call: CallSession): NotificationCompat.Builder {
         val decline = actionPendingIntent(call, CallActionReceiver.ACTION_DECLINE)
         val answer = actionPendingIntent(call, CallActionReceiver.ACTION_ANSWER)
-        val fullscreen = fullScreenPendingIntent(call)
 
         return baseBuilder(call)
             .setContentText("Incoming ${call.media} call")
@@ -85,17 +102,25 @@ internal class CallNotificationManager(private val context: Context) {
             .setAutoCancel(false)
             .setStyle(NotificationCompat.CallStyle.forIncomingCall(person(call), decline, answer))
             .setSilent(call.silenced)
-            .apply {
-                if (
-                    canUseFullScreen() &&
-                    CallPresentationPolicy.mayOwnFullScreen(
-                        call.callId,
-                        CallRegistry.get(context).all(),
-                    )
-                ) {
-                    setFullScreenIntent(fullscreen, true)
-                }
-            }
+            .addPerson(person(call))
+            // Keep the FSI attached even when Android 14+ reports that launching it is
+            // currently denied. The OS may downgrade to heads-up, while CallStyle still
+            // satisfies the platform requirement that triggered the crash.
+            .setFullScreenIntent(fullScreenPendingIntent(call), true)
+    }
+
+    private fun incomingFallbackBuilder(call: CallSession): NotificationCompat.Builder {
+        val decline = actionPendingIntent(call, CallActionReceiver.ACTION_DECLINE)
+        val answer = actionPendingIntent(call, CallActionReceiver.ACTION_ANSWER)
+
+        return baseBuilder(call)
+            .setContentText("Incoming ${call.media} call")
+            .setOngoing(true)
+            .setAutoCancel(false)
+            .setSilent(call.silenced)
+            .addPerson(person(call))
+            .addAction(0, "Decline", decline)
+            .addAction(0, "Answer", answer)
     }
 
     private fun baseBuilder(call: CallSession): NotificationCompat.Builder =
