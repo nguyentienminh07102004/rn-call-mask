@@ -54,12 +54,14 @@ if grep -q '^package/tests/' "$CONTENTS"; then
   exit 1
 fi
 
-node - "$TARBALL_PATH" <<'NODE'
+EXTRACT_DIR="$TMP_DIR/extracted"
+mkdir -p "$EXTRACT_DIR"
+tar -xzf "$TARBALL_PATH" -C "$EXTRACT_DIR" package/package.json
+
+node - "$EXTRACT_DIR/package/package.json" <<'NODE'
 const fs = require('fs');
-const { execFileSync } = require('child_process');
-const tarball = process.argv[2];
-const listing = execFileSync('tar', ['-xOf', tarball, 'package/package.json'], { encoding: 'utf8' });
-const pkg = JSON.parse(listing);
+const packageJsonPath = process.argv[2];
+const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 for (const key of ['main', 'types', 'react-native']) {
   if (!pkg[key]) {
     console.error(`::error::Packed package is missing package.json field ${key}`);
